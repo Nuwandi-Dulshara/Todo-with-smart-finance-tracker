@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
+import DeleteTaskDialog from './components/tasks/DeleteTaskDialog'
 import TaskForm from './components/tasks/TaskForm'
 import Calendar from './pages/Calendar'
 import Dashboard from './pages/Dashboard'
@@ -19,10 +20,13 @@ function App() {
   const [readNotifications, setReadNotifications] = useState([])
   const [isLoadingTasks, setIsLoadingTasks] = useState(true)
   const [isSavingTask, setIsSavingTask] = useState(false)
+  const [isDeletingTask, setIsDeletingTask] = useState(false)
   const [appError, setAppError] = useState('')
+  const [appNotice, setAppNotice] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [taskModal, setTaskModal] = useState({ open: false, task: null, date: '' })
+  const [deleteCandidate, setDeleteCandidate] = useState(null)
   const navigate = useNavigate()
 
   const refreshTasks = useCallback(async () => {
@@ -82,11 +86,14 @@ function App() {
   const saveTask = async (taskInput) => {
     setIsSavingTask(true)
     setAppError('')
+    setAppNotice('')
     try {
       if (taskInput.id) {
         await api.updateTask(taskInput.id, taskInput)
+        setAppNotice('Task updated successfully.')
       } else {
         await api.createTask(taskInput)
+        setAppNotice('Task created successfully.')
       }
       closeTaskModal()
       await refreshBackendData()
@@ -97,19 +104,37 @@ function App() {
     }
   }
 
-  const deleteTask = async (taskId) => {
+  const requestDeleteTask = (taskId) => {
+    const task = normalizedTasks.find((item) => item.id === taskId)
+    if (task) setDeleteCandidate(task)
+  }
+
+  const deleteTask = async () => {
+    if (!deleteCandidate) return
+    const taskId = deleteCandidate.id
+    setIsDeletingTask(true)
     setAppError('')
+    setAppNotice('')
     try {
       await api.deleteTask(taskId)
       setTasks((current) => current.filter((task) => task.id !== taskId))
+      setDeleteCandidate(null)
+      setAppNotice('Task deleted successfully.')
       setRefreshKey((current) => current + 1)
     } catch (error) {
       setAppError(error.message || 'Unable to delete task.')
+    } finally {
+      setIsDeletingTask(false)
     }
+  }
+
+  const cancelDeleteTask = () => {
+    if (!isDeletingTask) setDeleteCandidate(null)
   }
 
   const updateTask = async (taskId, updates) => {
     setAppError('')
+    setAppNotice('')
     try {
       const currentTask = normalizedTasks.find((task) => task.id === taskId)
       if (updates.status === 'Completed' || updates.status === 'To Do') {
@@ -122,6 +147,7 @@ function App() {
         const updatedTask = await api.updateTask(taskId, { ...currentTask, ...updates })
         setTasks((current) => current.map((task) => (task.id === taskId ? updatedTask : task)))
       }
+      setAppNotice('Task updated successfully.')
       setRefreshKey((current) => current + 1)
     } catch (error) {
       setAppError(error.message || 'Unable to update task.')
@@ -130,9 +156,11 @@ function App() {
 
   const updateTaskTime = async (taskId, spentMinutes) => {
     setAppError('')
+    setAppNotice('')
     try {
       const updatedTask = await api.updateTaskTime(taskId, spentMinutes)
       setTasks((current) => current.map((task) => (task.id === taskId ? updatedTask : task)))
+      setAppNotice('Focus time saved.')
       setRefreshKey((current) => current + 1)
     } catch (error) {
       setAppError(error.message || 'Unable to update task time.')
@@ -162,7 +190,7 @@ function App() {
     refreshKey,
     onAddTask: openAddTask,
     onEditTask: openEditTask,
-    onDeleteTask: deleteTask,
+    onDeleteTask: requestDeleteTask,
     onUpdateTask: updateTask,
   }
 
@@ -173,6 +201,7 @@ function App() {
         <Topbar unreadCount={notificationCount} onMenuClick={() => setIsSidebarOpen(true)} />
         <main className="page-shell">
           {appError && <div className="app-message error-message">{appError}</div>}
+          {appNotice && <div className="app-message success-message">{appNotice}</div>}
           <Routes>
             <Route path="/" element={<Dashboard {...sharedProps} />} />
             <Route path="/activities" element={<MyActivities {...sharedProps} onRefresh={refreshTasks} />} />
@@ -217,6 +246,12 @@ function App() {
           onCancel={closeTaskModal}
         />
       )}
+      <DeleteTaskDialog
+        task={deleteCandidate}
+        isDeleting={isDeletingTask}
+        onCancel={cancelDeleteTask}
+        onConfirm={deleteTask}
+      />
     </div>
   )
 }
