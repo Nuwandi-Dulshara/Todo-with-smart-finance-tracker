@@ -2,7 +2,7 @@ from calendar import monthrange
 from datetime import date, datetime
 
 from fastapi import HTTPException, status
-from sqlalchemy import or_, select
+from sqlalchemy import case, or_, select
 from sqlalchemy.orm import Session
 
 from ..models import Task
@@ -74,10 +74,19 @@ def list_tasks(
             )
         )
 
+    priority_order = case(
+        (Task.priority == "high", 1),
+        (Task.priority == "medium", 2),
+        (Task.priority == "low", 3),
+        else_=4,
+    )
+
     if sort == "due_date":
         statement = statement.order_by(Task.due_date.asc(), Task.due_time.asc().nullslast())
+    elif sort == "due_time":
+        statement = statement.order_by(Task.due_time.asc().nullslast(), Task.due_date.asc())
     elif sort == "priority":
-        statement = statement.order_by(Task.priority.asc(), Task.created_at.desc())
+        statement = statement.order_by(priority_order.asc(), Task.due_date.asc())
     elif sort == "created_at" or sort is None:
         statement = statement.order_by(Task.created_at.desc())
     else:

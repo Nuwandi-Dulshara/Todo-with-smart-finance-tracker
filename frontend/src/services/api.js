@@ -25,6 +25,21 @@ const priorityToApi = {
   High: 'high',
 }
 
+const sortToApi = {
+  dueDate: 'due_date',
+  dueTime: 'due_time',
+  createdAt: 'created_at',
+  priority: 'priority',
+}
+
+const normalizeTaskParams = (params = {}) => {
+  const normalized = { ...params }
+  if (normalized.status) normalized.status = statusToApi[normalized.status] || normalized.status
+  if (normalized.priority) normalized.priority = priorityToApi[normalized.priority] || normalized.priority
+  if (normalized.sort) normalized.sort = sortToApi[normalized.sort] || normalized.sort
+  return normalized
+}
+
 const request = async (path, options = {}) => {
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -96,7 +111,7 @@ export const api = {
   health: () => request('/health'),
   getTasks: (params = {}) => {
     const query = new URLSearchParams()
-    Object.entries(params).forEach(([key, value]) => {
+    Object.entries(normalizeTaskParams(params)).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') query.set(key, value)
     })
     const suffix = query.toString() ? `?${query.toString()}` : ''

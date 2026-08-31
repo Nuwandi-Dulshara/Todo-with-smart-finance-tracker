@@ -1,16 +1,29 @@
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import TaskList from '../components/tasks/TaskList'
+import TaskToolbar from '../components/tasks/TaskToolbar'
 import { api } from '../services/api'
 import { formatDateInput, readableDate, todayInput } from '../utils/taskHelpers'
 
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const sortOptions = [
+  { label: 'Due date', value: 'dueDate' },
+  { label: 'Due time', value: 'dueTime' },
+  { label: 'Priority', value: 'priority' },
+]
 
-function Calendar({ tasks, refreshKey, onAddTask, onEditTask, onDeleteTask, onUpdateTask }) {
+function Calendar({ tasks, refreshKey, onEditTask, onDeleteTask, onUpdateTask }) {
   const [cursor, setCursor] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(todayInput())
   const [monthTasks, setMonthTasks] = useState(null)
   const [selectedTasks, setSelectedTasks] = useState(null)
+  const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState({
+    status: 'All',
+    priority: 'All',
+    category: 'All',
+    sort: 'dueDate',
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -26,11 +39,44 @@ function Calendar({ tasks, refreshKey, onAddTask, onEditTask, onDeleteTask, onUp
   }, [cursor])
 
   const monthLabel = new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(cursor)
-  const visibleMonthTasks = monthTasks ?? tasks
-  const visibleSelectedTasks = selectedTasks ?? tasks.filter((task) => task.dueDate === selectedDate)
+  const sourceMonthTasks = monthTasks ?? tasks
+  const sourceSelectedTasks = selectedTasks ?? tasks.filter((task) => task.dueDate === selectedDate)
+  const categories = useMemo(
+    () => [...new Set(sourceMonthTasks.map((task) => task.category).filter(Boolean))].sort(),
+    [sourceMonthTasks],
+  )
+
+  const applyFilters = (taskList) => {
+    const query = search.trim().toLowerCase()
+    const filtered = taskList.filter((task) => {
+      const term = `${task.title} ${task.description} ${task.category}`.toLowerCase()
+      return (
+        (!query || term.includes(query)) &&
+        (filters.status === 'All' || task.status === filters.status) &&
+        (filters.priority === 'All' || task.priority === filters.priority) &&
+        (filters.category === 'All' || task.category === filters.category)
+      )
+    })
+
+    if (filters.sort === 'priority') {
+      const rank = { High: 0, Medium: 1, Low: 2 }
+      return [...filtered].sort((a, b) => rank[a.priority] - rank[b.priority])
+    }
+    if (filters.sort === 'dueTime') {
+      return [...filtered].sort((a, b) => (a.dueTime || '99:99').localeCompare(b.dueTime || '99:99'))
+    }
+    return [...filtered].sort((a, b) => `${a.dueDate}${a.dueTime}`.localeCompare(`${b.dueDate}${b.dueTime}`))
+  }
+
+  const visibleMonthTasks = applyFilters(sourceMonthTasks)
+  const visibleSelectedTasks = applyFilters(sourceSelectedTasks)
 
   const changeMonth = (amount) => {
     setCursor((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1))
+  }
+
+  const changeFilter = (name, value) => {
+    setFilters((current) => ({ ...current, [name]: value }))
   }
 
   useEffect(() => {
@@ -46,7 +92,7 @@ function Calendar({ tasks, refreshKey, onAddTask, onEditTask, onDeleteTask, onUp
         if (isMounted && data) setMonthTasks(data.tasks)
       })
       .catch((requestError) => {
-        if (isMounted) setError(requestError.message || 'Unable to connect to TaskFlow server.')
+        if (isMounted) setError(requestError.message || 'Unable to load calendar tasks. Please try again.')
       })
       .finally(() => {
         if (isMounted) setIsLoading(false)
@@ -64,7 +110,7 @@ function Calendar({ tasks, refreshKey, onAddTask, onEditTask, onDeleteTask, onUp
         if (isMounted) setSelectedTasks(dateTasks)
       })
       .catch((requestError) => {
-        if (isMounted) setError(requestError.message || 'Unable to connect to TaskFlow server.')
+        if (isMounted) setError(requestError.message || 'Unable to load selected date tasks. Please try again.')
       })
     return () => {
       isMounted = false
@@ -73,18 +119,27 @@ function Calendar({ tasks, refreshKey, onAddTask, onEditTask, onDeleteTask, onUp
 
   return (
     <div className="page-grid">
-      <section className="page-hero">
+      <section className="page-hero elevated-hero">
         <div>
           <p className="eyebrow">Calendar</p>
           <h1>See task timing at a glance.</h1>
+          <p className="hero-subtitle">Browse scheduled work by month and selected date.</p>
         </div>
-        <button className="primary-button" type="button" onClick={() => onAddTask(selectedDate)}>
-          <Plus size={18} />
-          Add Task
-        </button>
       </section>
+
       {isLoading && <div className="app-message">Loading calendar tasks...</div>}
       {error && <div className="app-message error-message">{error}</div>}
+
+      <TaskToolbar
+        search={search}
+        placeholder="Search calendar tasks..."
+        filters={filters}
+        categories={categories}
+        sortOptions={sortOptions}
+        onSearchChange={setSearch}
+        onFilterChange={changeFilter}
+        onSortChange={(value) => changeFilter('sort', value)}
+      />
 
       <section className="calendar-layout">
         <div className="panel calendar-panel">
@@ -136,18 +191,17 @@ function Calendar({ tasks, refreshKey, onAddTask, onEditTask, onDeleteTask, onUp
               <p className="eyebrow">Selected Date</p>
               <h2>{readableDate(selectedDate)}</h2>
             </div>
-            <button className="secondary-button" type="button" onClick={() => onAddTask(selectedDate)}>
-              <Plus size={16} />
-              Add
-            </button>
           </div>
           <TaskList
             tasks={visibleSelectedTasks}
             compact
+            showActions
+            showDescription
+            allowStatusChange
             onEdit={onEditTask}
             onDelete={onDeleteTask}
             onUpdate={onUpdateTask}
-            emptyText="No tasks on this date."
+            emptyText="No calendar tasks found for this date."
           />
         </div>
       </section>
