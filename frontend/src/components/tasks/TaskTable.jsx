@@ -50,7 +50,9 @@ function TaskTable({ tasks, emptyText = 'No tasks found.', onEdit, onDelete, onU
                     <option>Completed</option>
                   </select>
                 </td>
-                <td data-label="Estimated Minutes">{task.estimatedMinutes ? `${task.estimatedMinutes} min` : 'No estimate'}</td>
+                <td data-label="Estimated Minutes" className="table-estimated-minutes">
+                  {task.estimatedMinutes ? `${task.estimatedMinutes} min` : 'No estimate'}
+                </td>
                 <td data-label="Actions">
                   <div className="table-actions">
                     <button

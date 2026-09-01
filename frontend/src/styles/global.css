@@ -36,9 +36,11 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top left, rgba(22, 163, 74, 0.14), transparent 34rem),
     linear-gradient(180deg, #f0fdf4 0%, #f8fafc 46%, #ffffff 100%);
@@ -100,6 +102,7 @@ h3 {
 .app-shell {
   display: flex;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .app-main {
@@ -112,6 +115,8 @@ h3 {
 .page-shell {
   flex: 1;
   padding: 28px;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .sidebar {
@@ -578,6 +583,8 @@ h3 {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .task-table {
@@ -652,6 +659,13 @@ h3 {
 .table-status {
   width: 142px;
   font-weight: 700;
+}
+
+.table-estimated-minutes {
+  white-space: nowrap;
+  text-align: left;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .table-actions {
@@ -1195,85 +1209,13 @@ textarea:focus {
   }
 
   .task-table-wrap {
-    overflow: visible;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
   .task-table {
-    min-width: 0;
-    border-spacing: 0;
-  }
-
-  .task-table,
-  .task-table thead,
-  .task-table tbody,
-  .task-table tr,
-  .task-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .task-table thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-
-  .task-table tbody {
-    display: grid;
-    gap: 14px;
-  }
-
-  .task-table tr {
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    background: var(--white);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-  }
-
-  .task-table td {
-    display: grid;
-    grid-template-columns: minmax(112px, 38%) minmax(0, 1fr);
-    gap: 12px;
-    align-items: center;
-    border: 0;
-    border-bottom: 1px solid var(--border);
-    background: transparent;
-    padding: 12px 14px;
-  }
-
-  .task-table td::before {
-    content: attr(data-label);
-    color: var(--muted);
-    font-family: var(--font-heading);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-
-  .task-table td:first-child,
-  .task-table td:last-child {
-    border-radius: 0;
-  }
-
-  .task-table td:last-child {
-    border-bottom: 0;
-  }
-
-  .table-description {
-    max-width: none;
-  }
-
-  .table-status {
-    width: 100%;
-  }
-
-  .table-actions {
-    justify-content: flex-start;
+    min-width: 980px;
+    border-spacing: 0 10px;
   }
 }
 
@@ -1334,30 +1276,18 @@ textarea:focus {
   }
 
   .task-table-wrap {
-    overflow: visible;
+    overflow-x: hidden;
   }
 
   .task-table {
+    display: block;
+    width: 100%;
     min-width: 0;
     border-spacing: 0;
   }
 
-  .task-table,
-  .task-table thead,
-  .task-table tbody,
-  .task-table tr,
-  .task-table td {
-    display: block;
-    width: 100%;
-  }
-
   .task-table thead {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+    display: none;
   }
 
   .task-table tbody {
@@ -1366,6 +1296,8 @@ textarea:focus {
   }
 
   .task-table tr {
+    display: grid;
+    width: 100%;
     border: 1px solid var(--border);
     border-radius: 18px;
     background: var(--white);
@@ -1375,9 +1307,9 @@ textarea:focus {
 
   .task-table td {
     display: grid;
-    grid-template-columns: minmax(112px, 38%) minmax(0, 1fr);
-    gap: 12px;
-    align-items: center;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    align-items: start;
     border: 0;
     border-bottom: 1px solid var(--border);
     background: transparent;
@@ -1386,6 +1318,7 @@ textarea:focus {
 
   .task-table td::before {
     content: attr(data-label);
+    display: block;
     color: var(--muted);
     font-family: var(--font-heading);
     font-size: 0.72rem;
@@ -1409,6 +1342,11 @@ textarea:focus {
 
   .table-status {
     width: 100%;
+  }
+
+  .table-estimated-minutes {
+    justify-self: start;
+    white-space: nowrap;
   }
 
   .table-actions {
