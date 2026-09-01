@@ -23,7 +23,9 @@ function Sidebar({ isOpen, onClose }) {
     <>
       <aside className={`sidebar ${isOpen ? 'is-open' : ''}`}>
         <div className="sidebar-head">
-          <div className="brand-mark">TF</div>
+          <div className="brand-mark">
+            <img className="brand-logo brand-logo-sidebar" src="/logo/logo.png" alt="Organix AI" />
+          </div>
           <button className="icon-button mobile-only" type="button" onClick={onClose} aria-label="Close menu">
             <X size={18} />
           </button>

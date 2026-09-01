@@ -48,7 +48,7 @@ function Login({ onLogin }) {
   }
 
   return (
-    <AuthLayout mode="login" title="Welcome" subtitle="Sign in to continue to Task Flow">
+    <AuthLayout mode="login" title="Welcome" subtitle="Sign in to continue to Organix AI">
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         {formError && <div className="auth-alert error-message">{formError}</div>}
         <label className="auth-field">

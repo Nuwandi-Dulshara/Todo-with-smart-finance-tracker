@@ -55,14 +55,14 @@ const request = async (path, options = {}) => {
       const detail = Array.isArray(body.detail)
         ? body.detail.map((item) => item.msg).join(' ')
         : body.detail
-      throw new Error(detail || 'Task Flow request failed.')
+      throw new Error(detail || 'Organix AI request failed.')
     }
 
     if (response.status === 204) return null
     return response.json()
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new Error('Unable to connect to Task Flow server.', { cause: error })
+      throw new Error('Unable to connect to Organix AI server.', { cause: error })
     }
     throw error
   }

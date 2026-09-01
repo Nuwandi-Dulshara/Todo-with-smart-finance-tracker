@@ -65,7 +65,7 @@ function Register({ onRegister }) {
   }
 
   return (
-    <AuthLayout mode="register" title="Create Account" subtitle="Join Task Flow and get started">
+    <AuthLayout mode="register" title="Create Account" subtitle="Join Organix AI and get started">
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         {formError && <div className="auth-alert error-message">{formError}</div>}
         {formNotice && <div className="auth-alert success-message">{formNotice}</div>}

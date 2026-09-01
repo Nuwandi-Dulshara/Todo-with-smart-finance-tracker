@@ -9,8 +9,7 @@ function Topbar({ unreadCount, isAuthenticated, onMenuClick }) {
           <Menu size={20} />
         </button>
         <Link to="/" className="logo-link">
-          <span className="logo-dot" />
-          <span>Task Flow</span>
+          <img className="brand-logo brand-logo-header" src="/logo/logo.png" alt="Organix AI" />
         </Link>
       </div>
       <div className="topbar-actions">

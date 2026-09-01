@@ -54,7 +54,7 @@ function App() {
       const taskData = await api.getTasks()
       setTasks(taskData)
     } catch (error) {
-      setAppError(error.message || 'Unable to connect to TaskFlow server.')
+      setAppError(error.message || 'Unable to connect to Organix AI server.')
     } finally {
       setIsLoadingTasks(false)
     }

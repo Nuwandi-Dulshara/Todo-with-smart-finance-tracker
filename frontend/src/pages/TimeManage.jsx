@@ -59,7 +59,7 @@ function TimeManage({ tasks, refreshKey, error, onUpdateTaskTime }) {
         if (isMounted && data) setSummary(data)
       })
       .catch((requestError) => {
-        if (isMounted) setPageError(requestError.message || 'Unable to connect to TaskFlow server.')
+        if (isMounted) setPageError(requestError.message || 'Unable to connect to Organix AI server.')
       })
     return () => {
       isMounted = false
