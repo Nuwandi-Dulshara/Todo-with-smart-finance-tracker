@@ -4,9 +4,18 @@ import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
 import DeleteTaskDialog from './components/tasks/DeleteTaskDialog'
 import TaskForm from './components/tasks/TaskForm'
+import ProtectedExpenseRoute from './expense-tracker/components/ProtectedExpenseRoute'
+import ExpenseTrackerLayout from './expense-tracker/layouts/ExpenseTrackerLayout'
+import AddExpensePage from './expense-tracker/pages/AddExpensePage'
+import BudgetsPage from './expense-tracker/pages/BudgetsPage'
+import EditExpensePage from './expense-tracker/pages/EditExpensePage'
+import ExpenseDashboard from './expense-tracker/pages/ExpenseDashboard'
+import ExpensesPage from './expense-tracker/pages/ExpensesPage'
+import SmartInsightsPage from './expense-tracker/pages/SmartInsightsPage'
+import UnusualExpensesPage from './expense-tracker/pages/UnusualExpensesPage'
+import './expense-tracker/styles/expenseTracker.css'
 import Calendar from './pages/Calendar'
 import Dashboard from './pages/Dashboard'
-import EmptyPage from './pages/EmptyPage'
 import Login from './pages/Login'
 import MyActivities from './pages/MyActivities'
 import Notifications from './pages/Notifications'
@@ -224,11 +233,28 @@ function App() {
     onUpdateTask: updateTask,
   }
 
-  if (location.pathname === EXPENSE_DASHBOARD_PATH) {
-    if (!isAuthenticated) return <Navigate to="/login" replace />
-
+  if (location.pathname.startsWith('/expense-tracker')) {
     return (
-      <EmptyPage onLogout={handleLogout} />
+      <Routes>
+        <Route
+          path="/expense-tracker"
+          element={
+            <ProtectedExpenseRoute isAuthenticated={isAuthenticated}>
+              <ExpenseTrackerLayout onLogout={handleLogout} />
+            </ProtectedExpenseRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<ExpenseDashboard />} />
+          <Route path="expenses" element={<ExpensesPage />} />
+          <Route path="expenses/add" element={<AddExpensePage />} />
+          <Route path="expenses/:id/edit" element={<EditExpensePage />} />
+          <Route path="budgets" element={<BudgetsPage />} />
+          <Route path="insights" element={<SmartInsightsPage />} />
+          <Route path="unusual-expenses" element={<UnusualExpensesPage />} />
+          <Route path="*" element={<Navigate to="dashboard" replace />} />
+        </Route>
+      </Routes>
     )
   }
 
