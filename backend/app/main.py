@@ -6,19 +6,19 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models
 from .database import engine
-from .routers import calendar, dashboard, notifications, tasks, time_management
+from .routers import auth, calendar, dashboard, notifications, tasks, time_management
 from .schemas import HealthResponse
 
 load_dotenv()
 
 models.Base.metadata.create_all(bind=engine)
 
-app_name = os.getenv("APP_NAME", "TaskFlow")
+app_name = os.getenv("APP_NAME", "Task Flow")
 frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 app = FastAPI(
     title=f"{app_name} API",
-    description="Backend API for the TaskFlow task-management application.",
+    description="Backend API for the Task Flow task-management application.",
     version="0.1.0",
 )
 
@@ -30,6 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router, prefix="/api")
 app.include_router(tasks.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(calendar.router, prefix="/api")

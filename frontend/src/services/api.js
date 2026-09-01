@@ -52,14 +52,17 @@ const request = async (path, options = {}) => {
 
     if (!response.ok) {
       const body = await response.json().catch(() => ({}))
-      throw new Error(body.detail || 'TaskFlow request failed.')
+      const detail = Array.isArray(body.detail)
+        ? body.detail.map((item) => item.msg).join(' ')
+        : body.detail
+      throw new Error(detail || 'Task Flow request failed.')
     }
 
     if (response.status === 204) return null
     return response.json()
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new Error('Unable to connect to TaskFlow server.', { cause: error })
+      throw new Error('Unable to connect to Task Flow server.', { cause: error })
     }
     throw error
   }
@@ -109,6 +112,16 @@ export const mapNotificationFromApi = (notification) => ({
 
 export const api = {
   health: () => request('/health'),
+  register: ({ name, email, password }) =>
+    request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
+    }),
+  login: ({ email, password }) =>
+    request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
   getTasks: (params = {}) => {
     const query = new URLSearchParams()
     Object.entries(normalizeTaskParams(params)).forEach(([key, value]) => {

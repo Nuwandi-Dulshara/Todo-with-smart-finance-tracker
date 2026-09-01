@@ -1,7 +1,7 @@
 import { Bell, Menu } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
-function Topbar({ unreadCount, onMenuClick }) {
+function Topbar({ unreadCount, isAuthenticated, onMenuClick }) {
   return (
     <header className="topbar">
       <div className="topbar-left">
@@ -10,7 +10,7 @@ function Topbar({ unreadCount, onMenuClick }) {
         </button>
         <Link to="/" className="logo-link">
           <span className="logo-dot" />
-          <span>TaskFlow</span>
+          <span>Task Flow</span>
         </Link>
       </div>
       <div className="topbar-actions">
@@ -18,9 +18,12 @@ function Topbar({ unreadCount, onMenuClick }) {
           <Bell size={20} />
           {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
         </Link>
-        <button className="signup-button" type="button" disabled>
-          Sign Up
-        </button>
+        <Link
+          className="signup-button"
+          to={isAuthenticated ? '/expense-tracker/dashboard' : '/signup'}
+        >
+          {isAuthenticated ? 'Dashboard' : 'Sign Up'}
+        </Link>
       </div>
     </header>
   )

@@ -1,19 +1,35 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
 import DeleteTaskDialog from './components/tasks/DeleteTaskDialog'
 import TaskForm from './components/tasks/TaskForm'
 import Calendar from './pages/Calendar'
 import Dashboard from './pages/Dashboard'
+import EmptyPage from './pages/EmptyPage'
+import Login from './pages/Login'
 import MyActivities from './pages/MyActivities'
 import Notifications from './pages/Notifications'
+import Register from './pages/Register'
 import TimeManage from './pages/TimeManage'
 import TodayActivities from './pages/TodayActivities'
 import { api } from './services/api'
 import { isOverdueTask } from './utils/taskHelpers'
 
+const AUTH_STORAGE_KEY = 'task-flow-session'
+const EXPENSE_DASHBOARD_PATH = '/expense-tracker/dashboard'
+
+const getStoredSession = () => {
+  try {
+    const storedSession = window.localStorage.getItem(AUTH_STORAGE_KEY)
+    return storedSession ? JSON.parse(storedSession) : null
+  } catch {
+    return null
+  }
+}
+
 function App() {
+  const [session, setSession] = useState(getStoredSession)
   const [tasks, setTasks] = useState([])
   const [notifications, setNotifications] = useState([])
   const [notificationCount, setNotificationCount] = useState(0)
@@ -28,6 +44,8 @@ function App() {
   const [taskModal, setTaskModal] = useState({ open: false, task: null, date: '' })
   const [deleteCandidate, setDeleteCandidate] = useState(null)
   const navigate = useNavigate()
+  const location = useLocation()
+  const isAuthenticated = Boolean(session?.access_token)
 
   const refreshTasks = useCallback(async () => {
     setIsLoadingTasks(true)
@@ -183,6 +201,18 @@ function App() {
     navigate(`/activities?task=${taskId}`)
   }
 
+  const handleLogin = (authSession) => {
+    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authSession))
+    setSession(authSession)
+    navigate(EXPENSE_DASHBOARD_PATH, { replace: true })
+  }
+
+  const handleLogout = () => {
+    window.localStorage.removeItem(AUTH_STORAGE_KEY)
+    setSession(null)
+    navigate('/', { replace: true })
+  }
+
   const sharedProps = {
     tasks: normalizedTasks,
     isLoading: isLoadingTasks,
@@ -194,11 +224,39 @@ function App() {
     onUpdateTask: updateTask,
   }
 
+  if (location.pathname === EXPENSE_DASHBOARD_PATH) {
+    if (!isAuthenticated) return <Navigate to="/login" replace />
+
+    return (
+      <EmptyPage onLogout={handleLogout} />
+    )
+  }
+
+  if (location.pathname === '/login') {
+    return isAuthenticated ? (
+      <Navigate to={EXPENSE_DASHBOARD_PATH} replace />
+    ) : (
+      <Login onLogin={handleLogin} />
+    )
+  }
+
+  if (location.pathname === '/signup') {
+    return isAuthenticated ? (
+      <Navigate to={EXPENSE_DASHBOARD_PATH} replace />
+    ) : (
+      <Register onRegister={handleLogin} />
+    )
+  }
+
   return (
     <div className="app-shell">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <div className="app-main">
-        <Topbar unreadCount={notificationCount} onMenuClick={() => setIsSidebarOpen(true)} />
+        <Topbar
+          unreadCount={notificationCount}
+          isAuthenticated={isAuthenticated}
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
         <main className="page-shell">
           {appError && <div className="app-message error-message">{appError}</div>}
           {appNotice && <div className="app-message success-message">{appNotice}</div>}
@@ -233,6 +291,7 @@ function App() {
                 />
               }
             />
+            <Route path="/welcome" element={<Navigate to={EXPENSE_DASHBOARD_PATH} replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
