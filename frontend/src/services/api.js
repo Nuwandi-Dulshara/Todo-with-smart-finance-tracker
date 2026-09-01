@@ -68,6 +68,14 @@ const request = async (path, options = {}) => {
   }
 }
 
+const authRequest = async (path, token, options = {}) => request(path, {
+  ...options,
+  headers: {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  },
+})
+
 export const mapTaskFromApi = (task) => ({
   id: task.id,
   title: task.title,
@@ -122,6 +130,7 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
+  logout: (token) => authRequest('/auth/logout', token, { method: 'POST' }),
   getTasks: (params = {}) => {
     const query = new URLSearchParams()
     Object.entries(normalizeTaskParams(params)).forEach(([key, value]) => {

@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..models import User
+from ..models import AuthSession, User
 from ..schemas import UserCreate, UserLogin
 
 HASH_ALGORITHM = "pbkdf2_sha256"
@@ -43,6 +43,27 @@ def create_access_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+def create_session(db: Session, user: User) -> str:
+    token = create_access_token()
+    db.add(AuthSession(token=token, user_id=user.id))
+    db.commit()
+    return token
+
+
+def get_user_by_token(db: Session, token: str) -> User | None:
+    session = db.get(AuthSession, token)
+    if session is None:
+        return None
+    return db.get(User, session.user_id)
+
+
+def delete_session(db: Session, token: str) -> None:
+    session = db.get(AuthSession, token)
+    if session:
+        db.delete(session)
+        db.commit()
+
+
 def register_user(db: Session, user_in: UserCreate) -> dict:
     existing_user = db.scalar(select(User).where(User.email == user_in.email))
     if existing_user:
@@ -59,7 +80,8 @@ def register_user(db: Session, user_in: UserCreate) -> dict:
     db.add(user)
     db.commit()
     db.refresh(user)
-    return {"user": user, "access_token": create_access_token(), "token_type": "bearer"}
+    token = create_session(db, user)
+    return {"user": user, "access_token": token, "token_type": "bearer"}
 
 
 def login_user(db: Session, credentials: UserLogin) -> dict:
@@ -69,4 +91,5 @@ def login_user(db: Session, credentials: UserLogin) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password.",
         )
-    return {"user": user, "access_token": create_access_token(), "token_type": "bearer"}
+    token = create_session(db, user)
+    return {"user": user, "access_token": token, "token_type": "bearer"}

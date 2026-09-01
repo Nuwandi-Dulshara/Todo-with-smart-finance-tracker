@@ -24,8 +24,8 @@ function SmartInsightsPage() {
       .then((data) => {
         if (isMounted) setInsights(data)
       })
-      .catch(() => {
-        if (isMounted) setError('Could not load insights. Please try again.')
+      .catch((requestError) => {
+        if (isMounted) setError(requestError.message || 'Could not load insights. Please try again.')
       })
       .finally(() => {
         if (isMounted) setIsLoading(false)

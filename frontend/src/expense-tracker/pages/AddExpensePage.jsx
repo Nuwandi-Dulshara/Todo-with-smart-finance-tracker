@@ -14,8 +14,8 @@ function AddExpensePage() {
     try {
       await expenseApi.createExpense(expense)
       navigate('/expense-tracker/expenses', { replace: true })
-    } catch {
-      setError('Could not save this expense.')
+    } catch (requestError) {
+      setError(requestError.message || 'Could not save this expense.')
     } finally {
       setIsSaving(false)
     }

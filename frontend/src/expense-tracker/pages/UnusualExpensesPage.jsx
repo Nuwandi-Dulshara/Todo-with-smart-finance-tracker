@@ -17,8 +17,8 @@ function UnusualExpensesPage() {
       .then((data) => {
         if (isMounted) setExpenses(data)
       })
-      .catch(() => {
-        if (isMounted) setError('Could not load unusual expenses.')
+      .catch((requestError) => {
+        if (isMounted) setError(requestError.message || 'Could not load unusual expenses.')
       })
       .finally(() => {
         if (isMounted) setIsLoading(false)

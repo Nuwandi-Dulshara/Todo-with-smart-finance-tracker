@@ -1,5 +1,6 @@
 .expense-shell {
   display: flex;
+  width: 100%;
   min-height: 100vh;
   min-height: 100svh;
   overflow-x: hidden;
@@ -11,13 +12,15 @@
 .expense-sidebar {
   position: sticky;
   top: 0;
-  width: 278px;
+  width: 252px;
   height: 100vh;
-  flex: 0 0 278px;
+  flex: 0 0 252px;
   border-right: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.94);
-  padding: 22px 16px;
+  padding: 20px 14px;
   backdrop-filter: blur(16px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .expense-sidebar-brand {
@@ -41,6 +44,12 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.expense-shell *,
+.expense-shell *::before,
+.expense-shell *::after {
+  box-sizing: border-box;
 }
 
 .expense-nav {
@@ -72,6 +81,7 @@
   display: flex;
   flex: 1;
   min-width: 0;
+  max-width: 100%;
   flex-direction: column;
 }
 
@@ -88,24 +98,30 @@
   background: rgba(240, 253, 244, 0.84);
   padding: 0 28px;
   backdrop-filter: blur(18px);
+  min-width: 0;
 }
 
 .expense-header h1 {
   font-size: 1.35rem;
   line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 
 .expense-content {
   flex: 1;
+  width: 100%;
   min-width: 0;
-  padding: 28px;
+  overflow-x: hidden;
+  padding: 24px;
 }
 
 .expense-page-grid {
   display: grid;
-  gap: 20px;
-  max-width: 1380px;
+  width: min(100%, 1180px);
+  gap: 18px;
+  max-width: 1180px;
   margin: 0 auto;
+  min-width: 0;
 }
 
 .expense-page-hero,
@@ -118,6 +134,7 @@
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 18px 46px rgba(20, 83, 45, 0.09);
+  min-width: 0;
 }
 
 .expense-page-hero {
@@ -125,7 +142,8 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
-  padding: 26px;
+  padding: 22px;
+  min-width: 0;
 }
 
 .expense-page-hero h2 {
@@ -140,6 +158,12 @@
   color: var(--muted);
   font-family: var(--font-ui);
   line-height: 1.6;
+}
+
+.expense-page-hero > div,
+.expense-section-head > div,
+.budget-progress-head > div {
+  min-width: 0;
 }
 
 .expense-actions,
@@ -158,6 +182,7 @@
 .expense-form-actions,
 .expense-modal-actions {
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .expense-section-head,
@@ -182,6 +207,8 @@
   font-family: var(--font-ui);
   font-weight: 850;
   text-decoration: none;
+  max-width: 100%;
+  white-space: nowrap;
 }
 
 .expense-primary-button {
@@ -230,7 +257,7 @@
 
 .expense-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
 }
 
@@ -274,7 +301,7 @@
 
 .expense-alert-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 
@@ -307,7 +334,7 @@
 
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
 
@@ -324,7 +351,7 @@
 
 .expense-charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
   gap: 16px;
 }
 
@@ -335,6 +362,7 @@
 }
 
 .expense-panel.narrow {
+  width: min(100%, 760px);
   max-width: 760px;
 }
 
@@ -344,6 +372,8 @@
 }
 
 .expense-chart-card img {
+  display: block;
+  max-width: 100%;
   width: 100%;
   height: auto;
   border-radius: 14px;
@@ -369,13 +399,14 @@
 
 .expense-table-wrap {
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .expense-table {
   width: 100%;
-  min-width: 940px;
+  min-width: min(940px, calc(100vw - 72px));
   border-collapse: separate;
   border-spacing: 0 10px;
 }
@@ -398,6 +429,7 @@
   font-family: var(--font-ui);
   padding: 13px 12px;
   vertical-align: middle;
+  overflow-wrap: anywhere;
 }
 
 .expense-table td:first-child {
@@ -458,7 +490,7 @@
 }
 
 .expense-filters {
-  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .expense-filters label,
@@ -475,12 +507,15 @@
 .expense-form input,
 .expense-form select,
 .expense-form textarea {
+  width: 100%;
+  min-width: 0;
   background: var(--light-gray);
 }
 
 .expense-filter-actions {
   display: flex;
   align-items: end;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -561,7 +596,7 @@
 .insight-section-grid,
 .insight-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 14px;
 }
 
@@ -649,13 +684,13 @@
 }
 
 @media (max-width: 1180px) {
-  .expense-stats-grid,
-  .quick-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .expense-sidebar {
+    width: 232px;
+    flex-basis: 232px;
   }
 
-  .expense-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .expense-content {
+    padding: 20px;
   }
 }
 
@@ -663,6 +698,9 @@
   .expense-sidebar {
     position: fixed;
     z-index: 40;
+    width: min(292px, calc(100vw - 38px));
+    max-width: calc(100vw - 38px);
+    flex-basis: auto;
     transform: translateX(-105%);
     transition: transform 0.24s ease;
   }
@@ -692,6 +730,10 @@
     flex-direction: column;
   }
 
+  .expense-page-hero h2 {
+    font-size: clamp(1.55rem, 8vw, 2.2rem);
+  }
+
   .expense-charts-grid,
   .insight-section-grid,
   .insight-grid {
@@ -706,6 +748,8 @@
 
   .expense-header {
     min-height: 74px;
+    gap: 10px;
+    padding: 0 12px;
   }
 
   .expense-header h1 {
@@ -734,6 +778,13 @@
   .expense-secondary-button,
   .expense-danger-button {
     width: 100%;
+    white-space: normal;
+  }
+
+  .expense-header .expense-primary-button {
+    width: auto;
+    min-height: 38px;
+    padding: 0 11px;
   }
 
   .expense-panel,
@@ -743,5 +794,31 @@
   .insight-card {
     border-radius: 16px;
     padding: 16px;
+  }
+
+  .expense-table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 420px) {
+  .expense-content {
+    padding: 10px;
+  }
+
+  .expense-page-grid {
+    gap: 12px;
+  }
+
+  .expense-panel,
+  .expense-page-hero,
+  .expense-chart-card,
+  .budget-progress,
+  .insight-card {
+    padding: 14px;
+  }
+
+  .expense-header h1 {
+    font-size: 1rem;
   }
 }

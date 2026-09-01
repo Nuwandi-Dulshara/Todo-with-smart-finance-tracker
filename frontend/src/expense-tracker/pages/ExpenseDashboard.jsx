@@ -11,6 +11,7 @@ import { formatCurrency } from '../utils/currency'
 
 function ExpenseDashboard() {
   const [data, setData] = useState(null)
+  const [chartUrls, setChartUrls] = useState({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -20,14 +21,47 @@ function ExpenseDashboard() {
       .then((dashboardData) => {
         if (isMounted) setData(dashboardData)
       })
-      .catch(() => {
-        if (isMounted) setError('Could not load dashboard analytics.')
+      .catch((requestError) => {
+        if (isMounted) {
+          setError(requestError.message || 'Could not load dashboard analytics.')
+        }
       })
       .finally(() => {
         if (isMounted) setIsLoading(false)
       })
     return () => {
       isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+    const createdUrls = []
+    const charts = [
+      ['category-bar', 'Category-wise Spending'],
+      ['category-pie', 'Expense Category Mix'],
+      ['daily-line', 'Daily Spending'],
+      ['monthly-trend', 'Monthly Trend'],
+      ['payment-method', 'Payment Method Distribution'],
+      ['top-expenses', 'Top Five Largest Expenses'],
+    ]
+
+    Promise.all(
+      charts.map(([name]) =>
+        expenseApi.getChartImageUrl(name).then((url) => {
+          createdUrls.push(url)
+          return [name, url]
+        }).catch(() => [name, '']),
+      ),
+    ).then((entries) => {
+      if (isMounted) setChartUrls(Object.fromEntries(entries))
+    })
+
+    return () => {
+      isMounted = false
+      createdUrls.forEach((url) => {
+        if (url) URL.revokeObjectURL(url)
+      })
     }
   }, [])
 
@@ -74,11 +108,18 @@ function ExpenseDashboard() {
           </section>
 
           <section className="expense-charts-grid">
-            {['Category-wise Spending', 'Expense Category Mix', 'Daily Spending', 'Monthly Trend', 'Payment Method Distribution', 'Top Five Largest Expenses'].map((title) => (
-              <ChartCard title={title} key={title}>
+            {[
+              ['category-bar', 'Category-wise Spending'],
+              ['category-pie', 'Expense Category Mix'],
+              ['daily-line', 'Daily Spending'],
+              ['monthly-trend', 'Monthly Trend'],
+              ['payment-method', 'Payment Method Distribution'],
+              ['top-expenses', 'Top Five Largest Expenses'],
+            ].map(([name, title]) => (
+              <ChartCard title={title} imageUrl={chartUrls[name]} key={name}>
                 <div className="chart-placeholder">
                   <span />
-                  <p>Matplotlib chart image ready for backend connection.</p>
+                  <p>Matplotlib chart image will appear when backend data is available.</p>
                 </div>
               </ChartCard>
             ))}

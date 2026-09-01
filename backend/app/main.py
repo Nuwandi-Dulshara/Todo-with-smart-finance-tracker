@@ -6,6 +6,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models
 from .database import engine
+from .expense_tracker.routes import (
+    budget_routes,
+    chart_routes,
+    dashboard_routes,
+    expense_routes,
+    export_routes,
+    insight_routes,
+    ml_routes,
+)
 from .routers import auth, calendar, dashboard, notifications, tasks, time_management
 from .schemas import HealthResponse
 
@@ -31,6 +40,13 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api")
+app.include_router(expense_routes.router, prefix="/api")
+app.include_router(dashboard_routes.router, prefix="/api")
+app.include_router(budget_routes.router, prefix="/api")
+app.include_router(insight_routes.router, prefix="/api")
+app.include_router(ml_routes.router, prefix="/api")
+app.include_router(export_routes.router, prefix="/api")
+app.include_router(chart_routes.router, prefix="/api")
 app.include_router(tasks.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(calendar.router, prefix="/api")

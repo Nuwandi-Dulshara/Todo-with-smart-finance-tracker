@@ -26,6 +26,7 @@ import { api } from './services/api'
 import { isOverdueTask } from './utils/taskHelpers'
 
 const AUTH_STORAGE_KEY = 'task-flow-session'
+const AUTH_EXPIRED_EVENT = 'organix-auth-expired'
 const EXPENSE_DASHBOARD_PATH = '/expense-tracker/dashboard'
 
 const getStoredSession = () => {
@@ -55,6 +56,16 @@ function App() {
   const navigate = useNavigate()
   const location = useLocation()
   const isAuthenticated = Boolean(session?.access_token)
+
+  useEffect(() => {
+    const handleExpiredSession = () => {
+      setSession(null)
+      navigate('/login', { replace: true })
+    }
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleExpiredSession)
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpiredSession)
+  }, [navigate])
 
   const refreshTasks = useCallback(async () => {
     setIsLoadingTasks(true)
@@ -216,7 +227,11 @@ function App() {
     navigate(EXPENSE_DASHBOARD_PATH, { replace: true })
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const token = session?.access_token
+    if (token) {
+      await api.logout(token).catch(() => null)
+    }
     window.localStorage.removeItem(AUTH_STORAGE_KEY)
     setSession(null)
     navigate('/', { replace: true })

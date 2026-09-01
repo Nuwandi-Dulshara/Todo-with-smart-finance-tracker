@@ -54,8 +54,8 @@ function ExpenseForm({ initialExpense, isSaving, onCancel, onSave, onSuggestCate
         predictedCategory: suggestion.predictedCategory,
         predictionConfidence: suggestion.confidence,
       }))
-    } catch {
-      setPredictionError('Category prediction is temporarily unavailable.')
+    } catch (requestError) {
+      setPredictionError(requestError.message || 'Category prediction is temporarily unavailable.')
     } finally {
       setIsPredicting(false)
     }

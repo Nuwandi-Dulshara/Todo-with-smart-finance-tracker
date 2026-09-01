@@ -21,7 +21,7 @@ function BudgetsPage() {
     setIsLoading(true)
     expenseApi.getBudgets()
       .then(setBudgets)
-      .catch(() => setError('Could not load budgets. Please try again.'))
+      .catch((requestError) => setError(requestError.message || 'Could not load budgets. Please try again.'))
       .finally(() => setIsLoading(false))
   }, [])
 
