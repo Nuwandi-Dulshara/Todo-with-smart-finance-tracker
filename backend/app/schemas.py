@@ -65,6 +65,52 @@ class TaskRead(BaseModel):
     completed_at: datetime | None
 
 
+class UserCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    email: str = Field(min_length=3, max_length=255)
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("name")
+    @classmethod
+    def name_must_not_be_empty(cls, value):
+        if not value.strip():
+            raise ValueError("Name must not be empty")
+        return value.strip()
+
+    @field_validator("email")
+    @classmethod
+    def email_must_be_valid(cls, value):
+        normalized = value.strip().lower()
+        if "@" not in normalized or "." not in normalized.rsplit("@", 1)[-1]:
+            raise ValueError("Enter a valid email address")
+        return normalized
+
+
+class UserLogin(BaseModel):
+    email: str = Field(min_length=3, max_length=255)
+    password: str = Field(min_length=1, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def login_email_must_be_normalized(cls, value):
+        return value.strip().lower()
+
+
+class UserRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    email: str
+    created_at: datetime
+
+
+class AuthResponse(BaseModel):
+    user: UserRead
+    access_token: str
+    token_type: str = "bearer"
+
+
 class TaskListToday(BaseModel):
     all_today_tasks: list[TaskRead]
     completed_today: int

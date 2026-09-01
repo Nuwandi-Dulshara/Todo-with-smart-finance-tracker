@@ -58,7 +58,7 @@ function Dashboard({ tasks, refreshKey, onAddTask, onEditTask, onDeleteTask, onU
         <div>
           <p className="eyebrow">Dashboard</p>
           <h1>Focus on the work that matters today.</h1>
-          <p className="hero-subtitle">{readableLongDate()} · Your task flow is synced with the backend.</p>
+          <p className="hero-subtitle">{readableLongDate()} · Organix AI is synced with the backend.</p>
         </div>
         <button className="primary-button" type="button" onClick={() => onAddTask()}>
           <Plus size={18} />

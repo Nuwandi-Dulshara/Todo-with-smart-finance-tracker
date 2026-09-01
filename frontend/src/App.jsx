@@ -1,19 +1,45 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from './components/layout/Sidebar'
 import Topbar from './components/layout/Topbar'
 import DeleteTaskDialog from './components/tasks/DeleteTaskDialog'
 import TaskForm from './components/tasks/TaskForm'
+import ProtectedExpenseRoute from './expense-tracker/components/ProtectedExpenseRoute'
+import ExpenseTrackerLayout from './expense-tracker/layouts/ExpenseTrackerLayout'
+import AddExpensePage from './expense-tracker/pages/AddExpensePage'
+import BudgetsPage from './expense-tracker/pages/BudgetsPage'
+import EditExpensePage from './expense-tracker/pages/EditExpensePage'
+import ExpenseDashboard from './expense-tracker/pages/ExpenseDashboard'
+import ExpensesPage from './expense-tracker/pages/ExpensesPage'
+import SmartInsightsPage from './expense-tracker/pages/SmartInsightsPage'
+import UnusualExpensesPage from './expense-tracker/pages/UnusualExpensesPage'
+import './expense-tracker/styles/expenseTracker.css'
 import Calendar from './pages/Calendar'
 import Dashboard from './pages/Dashboard'
+import Login from './pages/Login'
 import MyActivities from './pages/MyActivities'
 import Notifications from './pages/Notifications'
+import Register from './pages/Register'
 import TimeManage from './pages/TimeManage'
 import TodayActivities from './pages/TodayActivities'
 import { api } from './services/api'
 import { isOverdueTask } from './utils/taskHelpers'
 
+const AUTH_STORAGE_KEY = 'task-flow-session'
+const AUTH_EXPIRED_EVENT = 'organix-auth-expired'
+const EXPENSE_DASHBOARD_PATH = '/expense-tracker/dashboard'
+
+const getStoredSession = () => {
+  try {
+    const storedSession = window.localStorage.getItem(AUTH_STORAGE_KEY)
+    return storedSession ? JSON.parse(storedSession) : null
+  } catch {
+    return null
+  }
+}
+
 function App() {
+  const [session, setSession] = useState(getStoredSession)
   const [tasks, setTasks] = useState([])
   const [notifications, setNotifications] = useState([])
   const [notificationCount, setNotificationCount] = useState(0)
@@ -28,6 +54,18 @@ function App() {
   const [taskModal, setTaskModal] = useState({ open: false, task: null, date: '' })
   const [deleteCandidate, setDeleteCandidate] = useState(null)
   const navigate = useNavigate()
+  const location = useLocation()
+  const isAuthenticated = Boolean(session?.access_token)
+
+  useEffect(() => {
+    const handleExpiredSession = () => {
+      setSession(null)
+      navigate('/login', { replace: true })
+    }
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleExpiredSession)
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpiredSession)
+  }, [navigate])
 
   const refreshTasks = useCallback(async () => {
     setIsLoadingTasks(true)
@@ -36,7 +74,7 @@ function App() {
       const taskData = await api.getTasks()
       setTasks(taskData)
     } catch (error) {
-      setAppError(error.message || 'Unable to connect to TaskFlow server.')
+      setAppError(error.message || 'Unable to connect to Organix AI server.')
     } finally {
       setIsLoadingTasks(false)
     }
@@ -183,6 +221,22 @@ function App() {
     navigate(`/activities?task=${taskId}`)
   }
 
+  const handleLogin = (authSession) => {
+    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authSession))
+    setSession(authSession)
+    navigate(EXPENSE_DASHBOARD_PATH, { replace: true })
+  }
+
+  const handleLogout = async () => {
+    const token = session?.access_token
+    if (token) {
+      await api.logout(token).catch(() => null)
+    }
+    window.localStorage.removeItem(AUTH_STORAGE_KEY)
+    setSession(null)
+    navigate('/', { replace: true })
+  }
+
   const sharedProps = {
     tasks: normalizedTasks,
     isLoading: isLoadingTasks,
@@ -194,11 +248,56 @@ function App() {
     onUpdateTask: updateTask,
   }
 
+  if (location.pathname.startsWith('/expense-tracker')) {
+    return (
+      <Routes>
+        <Route
+          path="/expense-tracker"
+          element={
+            <ProtectedExpenseRoute isAuthenticated={isAuthenticated}>
+              <ExpenseTrackerLayout onLogout={handleLogout} />
+            </ProtectedExpenseRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<ExpenseDashboard />} />
+          <Route path="expenses" element={<ExpensesPage />} />
+          <Route path="expenses/add" element={<AddExpensePage />} />
+          <Route path="expenses/:id/edit" element={<EditExpensePage />} />
+          <Route path="budgets" element={<BudgetsPage />} />
+          <Route path="insights" element={<SmartInsightsPage />} />
+          <Route path="unusual-expenses" element={<UnusualExpensesPage />} />
+          <Route path="*" element={<Navigate to="dashboard" replace />} />
+        </Route>
+      </Routes>
+    )
+  }
+
+  if (location.pathname === '/login') {
+    return isAuthenticated ? (
+      <Navigate to={EXPENSE_DASHBOARD_PATH} replace />
+    ) : (
+      <Login onLogin={handleLogin} />
+    )
+  }
+
+  if (location.pathname === '/signup') {
+    return isAuthenticated ? (
+      <Navigate to={EXPENSE_DASHBOARD_PATH} replace />
+    ) : (
+      <Register onRegister={handleLogin} />
+    )
+  }
+
   return (
     <div className="app-shell">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <div className="app-main">
-        <Topbar unreadCount={notificationCount} onMenuClick={() => setIsSidebarOpen(true)} />
+        <Topbar
+          unreadCount={notificationCount}
+          isAuthenticated={isAuthenticated}
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
         <main className="page-shell">
           {appError && <div className="app-message error-message">{appError}</div>}
           {appNotice && <div className="app-message success-message">{appNotice}</div>}
@@ -233,6 +332,7 @@ function App() {
                 />
               }
             />
+            <Route path="/welcome" element={<Navigate to={EXPENSE_DASHBOARD_PATH} replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

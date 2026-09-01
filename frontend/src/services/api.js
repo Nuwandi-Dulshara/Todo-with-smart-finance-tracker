@@ -52,18 +52,29 @@ const request = async (path, options = {}) => {
 
     if (!response.ok) {
       const body = await response.json().catch(() => ({}))
-      throw new Error(body.detail || 'TaskFlow request failed.')
+      const detail = Array.isArray(body.detail)
+        ? body.detail.map((item) => item.msg).join(' ')
+        : body.detail
+      throw new Error(detail || 'Organix AI request failed.')
     }
 
     if (response.status === 204) return null
     return response.json()
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new Error('Unable to connect to TaskFlow server.', { cause: error })
+      throw new Error('Unable to connect to Organix AI server.', { cause: error })
     }
     throw error
   }
 }
+
+const authRequest = async (path, token, options = {}) => request(path, {
+  ...options,
+  headers: {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers,
+  },
+})
 
 export const mapTaskFromApi = (task) => ({
   id: task.id,
@@ -109,6 +120,17 @@ export const mapNotificationFromApi = (notification) => ({
 
 export const api = {
   health: () => request('/health'),
+  register: ({ name, email, password }) =>
+    request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
+    }),
+  login: ({ email, password }) =>
+    request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+  logout: (token) => authRequest('/auth/logout', token, { method: 'POST' }),
   getTasks: (params = {}) => {
     const query = new URLSearchParams()
     Object.entries(normalizeTaskParams(params)).forEach(([key, value]) => {
