@@ -1,0 +1,16 @@
+description,category
+lunch at restaurant,Food
+dinner takeaway,Food
+grocery shopping,Food
+uber to office,Transport
+bus ticket,Transport
+fuel refill,Transport
+monthly rent,Housing
+hotel booking,Housing
+electricity bill,Utilities
+internet payment,Utilities
+online course,Education
+doctor appointment,Healthcare
+movie tickets,Entertainment
+clothes shopping,Shopping
+miscellaneous payment,Other
