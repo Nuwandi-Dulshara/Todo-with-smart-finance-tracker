@@ -1,7 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.auth import router as auth_router
+from app.api.dashboard import router as dashboard_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -31,6 +34,17 @@ app.add_middleware(
 
 
 app.include_router(auth_router)
+app.include_router(dashboard_router)
+
+
+@app.exception_handler(SQLAlchemyError)
+async def database_unavailable(_request, _error):
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": "The database is temporarily unavailable. Please try again shortly.",
+        },
+    )
 
 
 @app.get("/api/v1/health")
