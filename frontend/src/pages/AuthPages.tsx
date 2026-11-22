@@ -240,6 +240,7 @@ function passwordChecks(password: string) {
 }
 
 export function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -260,13 +261,13 @@ export function LoginPage() {
 
     setIsSubmitting(true);
     try {
-      const user = await submitAuthRequest("login", {
+      await submitAuthRequest("login", {
         email: email.trim(),
         password,
         remember_me: remember,
       });
       setPassword("");
-      setMessage(`Welcome back, ${user.full_name}. Your session is active.`);
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Unable to sign in."
