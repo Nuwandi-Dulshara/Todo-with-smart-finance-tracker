@@ -2,6 +2,13 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Backend API
+
+The authentication pages call `http://127.0.0.1:8000/api/v1` by default and
+send session cookies with requests. Set `VITE_API_BASE_URL` in a frontend
+environment file to use a different backend URL. See [the backend README](../backend/README.md)
+for local API and database setup.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
