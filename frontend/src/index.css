@@ -1,14 +1,39 @@
-@import "tailwindcss";
 
-@theme {
-  --color-navy: #0B1020;
-  --color-slate-navy: #151D35;
-  --color-violet: #7957FF;
-  --color-cyan: #22D3EE;
-}
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 
 :root {
-  font-family: Inter, system-ui, sans-serif;
-  color: #ffffff;
-  background-color: #0B1020;
+  font-family: "Inter", sans-serif;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  width: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  isolation: isolate;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b1020;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #394466;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7957ff;
 }
