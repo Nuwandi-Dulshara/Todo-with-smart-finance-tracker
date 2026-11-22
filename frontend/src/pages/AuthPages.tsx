@@ -19,7 +19,7 @@ type AuthUser = {
 };
 
 const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1"
+  import.meta.env.VITE_API_BASE_URL || "/api/v1"
 ).replace(/\/+$/, "");
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -61,6 +61,7 @@ async function submitAuthRequest(
   endpoint: AuthEndpoint,
   payload: Record<string, string | boolean>
 ): Promise<AuthUser> {
+  const signal = AbortSignal.timeout(15_000);
   let response: Response;
   try {
     response = await fetch(`${API_BASE_URL}/auth/${endpoint}`, {
@@ -68,8 +69,12 @@ async function submitAuthRequest(
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      signal,
     });
   } catch {
+    if (signal.aborted) {
+      throw new Error("The server took too long to respond. Please try again.");
+    }
     throw new Error(
       "Unable to reach the backend. Check that the API server is running."
     );
@@ -79,6 +84,9 @@ async function submitAuthRequest(
   try {
     body = await response.json();
   } catch {
+    if (signal.aborted) {
+      throw new Error("The server took too long to respond. Please try again.");
+    }
     throw new Error("The backend returned an invalid response.");
   }
 
