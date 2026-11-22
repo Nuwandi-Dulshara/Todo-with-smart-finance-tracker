@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #0B1020;
+  --color-slate-navy: #151D35;
+  --color-violet: #7957FF;
+  --color-cyan: #22D3EE;
+}
+
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #ffffff;
+  background-color: #0B1020;
+}
